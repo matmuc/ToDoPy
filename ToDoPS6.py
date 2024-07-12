@@ -357,7 +357,7 @@ class MainWindow(QMainWindow):
         shints = QGuiApplication.styleHints()
         darkScheme = shints.colorScheme() == Qt.ColorScheme.Dark
 
-        self.setWindowTitle("ToOdPs6")
+        self.setWindowTitle("ToDoPS6")
         self.setMinimumSize(1600,700)
 
         pixmapi = getattr(QStyle, 'SP_ArrowForward')
