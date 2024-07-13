@@ -231,10 +231,17 @@ class EditDialog(QDialog):
         dateLayout.addWidget(self.dueDateEdit)
         def onCDuBtn():
             self.dueDateEdit.setDate(qDateFromStr('2000-01-01'))
+        def onDud3Btn():
+            ddDate = datetime.date.today() + datetime.timedelta(days=3)
+            self.dueDateEdit.setDate(qDateFromStr(ddDate.strftime("%Y-%m-%d")))
         clearDuDButton = QPushButton(self.tr("X"), default=False, autoDefault=False)
         clearDuDButton.setMaximumWidth(30)
         clearDuDButton.pressed.connect(onCDuBtn)
         dateLayout.addWidget(clearDuDButton)
+        p3dBtn = QPushButton(self.tr("+3"), default=False, autoDefault=False)
+        p3dBtn.setMaximumWidth(30)
+        p3dBtn.pressed.connect(onDud3Btn)
+        dateLayout.addWidget(p3dBtn)
         dolabel = QLabel("DoneDate")
         dolabel.setAlignment(Qt.AlignRight)
         dateLayout.addWidget(dolabel)
