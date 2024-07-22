@@ -21,7 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 import json
 import datetime
-import sys, io
+import sys, io, re
 from os.path import exists
 
 from PySide6.QtCore import Qt, QAbstractTableModel, QDate
@@ -46,6 +46,11 @@ def qDateToDateStr(qDate):
         return ""
     date = datetime.datetime(qDate.year(), qDate.month(), qDate.day())
     return date.strftime("%Y-%m-%d")
+
+def cleanString(strIn):
+    strOut = re.sub(r"[\n\r\t ]"," ",strIn)
+    strOut = re.sub(r"[ ]{2,}", " ", strOut)
+    return strOut
 
 def getFilteredItems():
     global showDone
@@ -321,7 +326,7 @@ class EditDialog(QDialog):
 
     def onAddProg(self):
         if len(self.addProgEdit.text()):
-            newText = datetime.datetime.now().strftime("%y%m%d-%H%M%S ") + self.addProgEdit.text()
+            newText = datetime.datetime.now().strftime("%y%m%d-%H%M%S ") + cleanString(self.addProgEdit.text())
             self.progTextEdit.append(newText)
             self.addProgEdit.setText('')
 
