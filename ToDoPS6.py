@@ -81,7 +81,6 @@ class TableModel(QAbstractTableModel):
         #print(self.filteredItems)
         self.columns= { 0: 'Category', 1: 'Priority', 2: 'Status', 3: 'Title', 4: 'Description', 5: 'Date', 6: 'DueDate', 7: 'DoneDate'}
 
-
     def data(self, index, role):
         global showDone
         global darkScheme
@@ -106,7 +105,6 @@ class TableModel(QAbstractTableModel):
         except:
             None
 
-
         if role == Qt.DisplayRole:
             text = item[self.columns[index.column()]]
             #if index.column() == 1: # titel
@@ -121,7 +119,7 @@ class TableModel(QAbstractTableModel):
             else:
                 return QBrush('#000')
         elif role == Qt.BackgroundRole:
-            if index.row()%2 > 0:
+            if index.row()%2 == 0:
                 if darkScheme:
                     col = QBrush('#4452ac')
                 else:      
