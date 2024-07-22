@@ -121,7 +121,6 @@ class TableModel(QAbstractTableModel):
             else:
                 return QBrush('#000')
         elif role == Qt.BackgroundRole:
-            print("urgent: ",urgent," overdue: ",overdue )
             if index.row()%2 > 0:
                 if darkScheme:
                     col = QBrush('#4452ac')
@@ -157,6 +156,9 @@ class TableModel(QAbstractTableModel):
 class EditDialog(QDialog):
     item = None
     def __init__(self, item):
+        global categories
+        global statusList
+
         super().__init__()
         self.item = item
 
@@ -211,7 +213,20 @@ class EditDialog(QDialog):
         #statusLayout = QHBoxLayout()
         prioLayout.addWidget(QLabel("Status"))
         self.statusEdit = QLineEdit(item['Status'], parent=self)
+        self.statusEdit.setMaximumWidth(120)
         prioLayout.addWidget(self.statusEdit)
+        self.statSelCB = QComboBox()
+        self.statSelCB.setMaximumWidth(120)
+        self.statSelCB.addItems(statusList)
+        self.statSelCB.setCurrentText(item['Status'])
+        def onSelStatusCB():
+            print("Sel Status: ",self.statSelCB.currentText())
+            self.statusEdit.setText(self.statSelCB.currentText())
+        self.statSelCB.currentTextChanged.connect(onSelStatusCB)
+        prioLayout.addWidget(self.statSelCB)
+        prioSpacer = QSpacerItem(800, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        prioLayout.addItem(prioSpacer)
+
         #self.mainLayout.addLayout(statusLayout)
 
         dateLayout = QHBoxLayout()
@@ -529,13 +544,18 @@ def loadToDoFile():
     global ItemsObject
     global toDoFile
     global categories
+    global statusList
     toDoFO = io.open(toDoFile, mode="r", encoding="utf-8")
     ItemsObject = json.load(toDoFO)
     toDoFO.close()
     categories = ['ALL']
+    statusList = ['New', 'in Progress']
     IDs = []
     FixIdsNeeded = False
     for item in ItemsObject:
+        if not item['Status'] in statusList:
+            if not item['Status'].lower() in ['done', 'deleted','',' ']:
+                statusList.append(item['Status'])
         if not "DoneDate" in item:
             item["DoneDate"] = ""
         if not "Category" in item:
@@ -588,6 +608,7 @@ if __name__ == '__main__':
     global toDoFile
     global window
     global categories
+    global statusList
 
     toDoFile = "ToDo.json"
 
