@@ -1,5 +1,17 @@
 [
   {
+    "ID": 14,
+    "Title": "Noch ein Test",
+    "Description": "dies ist noch ein Test",
+    "Priority": "",
+    "Date": "2024-07-02",
+    "DueDate": "2024-08-06",
+    "Status": "New",
+    "DoneDate": "",
+    "Progress": [],
+    "Category": "test"
+  },
+  {
     "ID": 12,
     "Title": "Müll",
     "Description": "",
@@ -24,18 +36,6 @@
       "240702-111755 dsjfl",
       "240702-111759 komm 2"
     ],
-    "Category": "test"
-  },
-  {
-    "ID": 14,
-    "Title": "Noch ein Test",
-    "Description": "dies ist noch ein Test",
-    "Priority": "",
-    "Date": "2024-07-02",
-    "DueDate": "2024-08-06",
-    "Status": "New",
-    "DoneDate": "",
-    "Progress": [],
     "Category": "test"
   },
   {

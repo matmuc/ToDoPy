@@ -25,10 +25,11 @@ import sys, io, re
 from os.path import exists
 
 from PySide6.QtCore import Qt, QAbstractTableModel, QDate
-from PySide6.QtGui import QBrush, QGuiApplication, QFont
+from PySide6.QtGui import QBrush, QGuiApplication, QFont, QAction
 from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, \
     QVBoxLayout, QHBoxLayout, QCheckBox, QLabel, QTableView, QComboBox, QHeaderView, QSizePolicy, QSpacerItem, \
-    QDialog, QLineEdit, QDateEdit, QTextEdit, QStyle
+    QDialog, QLineEdit, QDateEdit, QTextEdit, QStyle, QMenu
+
 
 showDone = False
 CatSel = 'ALL'
@@ -444,6 +445,10 @@ class MainWindow(QMainWindow):
         mainLayout.addWidget(self.todoTable)
         self.model = TableModel()
         self.todoTable.setModel(self.model)
+        #Kontext Menü
+        self.todoTable.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.todoTable.customContextMenuRequested.connect(self.showContextMenu)
+        
         self.todoTable.setShowGrid(False)
         self.todoTable.verticalHeader().setStyleSheet("""font-weight: 800; font-size: 11px; """)
         self.todoTable.horizontalHeader().setStyleSheet("""font-weight: 800;""")
@@ -483,7 +488,58 @@ class MainWindow(QMainWindow):
                font-size: 11px;
                """)
         mainLayout.addWidget(self.statusText)
+    
+    def saveItems(self):
+        print('Saving Items after reordering...')
+        writeToDos()  # Die geänderte Reihenfolge speichern
+        
+        
+    def showContextMenu(self, position):
+        """
+        Zeigt das Kontextmenü mit den Optionen "Move Up" und "Move Down".
+        """
+        index = self.todoTable.indexAt(position)
+        if not index.isValid():
+            return
+        
+        menu = QMenu(self)
 
+        move_up_action = QAction("Move Up", self)
+        move_up_action.triggered.connect(self.moveUp)
+        menu.addAction(move_up_action)
+
+        move_down_action = QAction("Move Down", self)
+        move_down_action.triggered.connect(self.moveDown)
+        menu.addAction(move_down_action)
+
+        menu.exec(self.todoTable.viewport().mapToGlobal(position))
+        
+        
+    def moveUp(self):
+        selected_row = self.todoTable.selectionModel().currentIndex().row()
+        if selected_row > 0:  # Nur wenn das Item nicht schon die erste Zeile ist
+            # Verschieben in filteredItems
+            self.model.filteredItems[selected_row], self.model.filteredItems[selected_row - 1] = \
+                self.model.filteredItems[selected_row - 1], self.model.filteredItems[selected_row]
+            
+            # Auch in ItemsObject die Reihenfolge anpassen
+            item_id = self.model.filteredItems[selected_row]['ID']
+            moveItemInItemsObject(item_id, selected_row, selected_row - 1)
+            self.reloadTable()  # Tabelle neu laden
+
+    def moveDown(self):
+        selected_row = self.todoTable.selectionModel().currentIndex().row()
+        if selected_row < len(self.model.filteredItems) - 1:  # Nur wenn das Item nicht schon die letzte Zeile ist
+            # Verschieben in filteredItems
+            self.model.filteredItems[selected_row], self.model.filteredItems[selected_row + 1] = \
+                self.model.filteredItems[selected_row + 1], self.model.filteredItems[selected_row]
+            
+            # Auch in ItemsObject die Reihenfolge anpassen
+            item_id = self.model.filteredItems[selected_row]['ID']
+            moveItemInItemsObject(item_id, selected_row, selected_row + 1)
+            self.reloadTable()  # Tabelle neu laden
+        
+        
     def onAddToDoButton(self):
         print ('click onAddToDoButton')
         newObj = {
@@ -544,8 +600,40 @@ def getNewID():
             maxId = i['ID']
     return maxId+1
 
+def moveItemInItemsObject(item_id, from_index, to_index):
+    # Holen des Items aus der gefilterten Liste (filteredItems)
+    item_to_move = None
+    for item in ItemsObject:
+        if item['ID'] == item_id:
+            item_to_move = item
+            break
+
+    if item_to_move:
+        # Entferne das Item aus filteredItems (nicht aus ItemsObject)
+        filtered_items = getFilteredItems()  # Neu gefilterte Liste holen
+        if from_index >= len(filtered_items) or to_index >= len(filtered_items):
+            return  # Wenn der Index außerhalb der gültigen Bereiche liegt, abbrechen
+
+        # Verschiebe das Item in filteredItems
+        filtered_items.pop(from_index)  # Entfernt das Element aus der Position
+        filtered_items.insert(to_index, item_to_move)  # Fügt es an der neuen Position ein
+
+        # Jetzt müssen wir ItemsObject neu anpassen, da die gefilterte Liste nur eine Ansicht ist
+        # Wir gehen durch alle Elemente in der gefilterten Liste und aktualisieren die Positionen in ItemsObject
+        # Wir gehen alle Elemente in filteredItems durch und setzen die Reihenfolge in ItemsObject entsprechend
+        new_order = [item['ID'] for item in filtered_items]
+        ItemsObject = [item for item in ItemsObject if item['ID'] in new_order]  # Neu sortieren
+
+        # ItemsObject entsprechend der neuen Reihenfolge anpassen
+        ItemsObject.sort(key=lambda item: new_order.index(item['ID']))  # Sortiere ItemsObject entsprechend der Reihenfolge in filteredItems
+
+        writeToDos()  # Speichern der geänderten Reihenfolge
+        reloadFile()  # Neu laden
+
+        
 def writeToDos():
     global toDoFile
+    global ItemsObject
     print('writing ToDos to '+toDoFile)
     toDoFO = io.open(toDoFile, mode="w", encoding="utf-8")
     json.dump(ItemsObject, toDoFO, sort_keys=False, ensure_ascii=False, indent=2 )
