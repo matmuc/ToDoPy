@@ -604,28 +604,34 @@ def getNewID():
 def moveItemInItemsObject(item_id, from_index, to_index):
     global ItemsObject
 
-    # Holen des Items aus ItemsObject
-    item_to_move = None
-    for item in ItemsObject:
-        if item['ID'] == item_id:
-            item_to_move = item
-            break
+    # Holen der gefilterten Liste
+    filtered_items = getFilteredItems()
+    if from_index >= len(filtered_items) or to_index >= len(filtered_items):
+        return
 
-    if item_to_move:
-        # Holen der gefilterten Liste
-        filtered_items = getFilteredItems()
-        if from_index >= len(filtered_items) or to_index >= len(filtered_items):
-            return
+    # Das Item das verschoben werden soll
+    item_to_move = filtered_items[from_index]
 
-        # Finde die Positionen in ItemsObject (nicht in filteredItems!)
-        from_pos_global = ItemsObject.index(item_to_move)
+    # Finde die Position in ItemsObject
+    from_pos_global = ItemsObject.index(item_to_move)
 
-        # Verschiebe das Item in ItemsObject
-        ItemsObject.pop(from_pos_global)
-        ItemsObject.insert(from_pos_global + (to_index - from_index), item_to_move)
+    # Finde die Position des Items, das an to_index in der gefilterten Liste ist
+    item_at_target = filtered_items[to_index]
+    to_pos_global = ItemsObject.index(item_at_target)
 
-        writeToDos()
-        reloadFile()
+    # Verschiebe das Item in ItemsObject zur richtigen Position
+    ItemsObject.pop(from_pos_global)
+
+    # Wenn wir nach oben verschieben, muss to_pos um 1 reduziert werden
+    if from_pos_global > to_pos_global:
+        to_pos_global -= 1
+
+    ItemsObject.insert(to_pos_global, item_to_move)
+
+    writeToDos()
+    reloadFile()
+
+
 
 
 def writeToDos():
