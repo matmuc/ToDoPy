@@ -27,18 +27,6 @@
     "Category": "test"
   },
   {
-    "ID": 14,
-    "Title": "Noch ein Test",
-    "Description": "dies ist noch ein Test",
-    "Priority": "",
-    "Date": "2024-07-02",
-    "DueDate": "2024-08-06",
-    "Status": "New",
-    "DoneDate": "",
-    "Progress": [],
-    "Category": "test"
-  },
-  {
     "ID": 15,
     "Title": "test Done (15)",
     "Description": "",
@@ -61,6 +49,18 @@
     "Status": "New",
     "DoneDate": "",
     "Progress": []
+  },
+  {
+    "ID": 14,
+    "Title": "Noch ein Test",
+    "Description": "dies ist noch ein Test",
+    "Priority": "",
+    "Date": "2024-07-02",
+    "DueDate": "2024-08-06",
+    "Status": "New",
+    "DoneDate": "",
+    "Progress": [],
+    "Category": "test"
   },
   {
     "ID": 22,
