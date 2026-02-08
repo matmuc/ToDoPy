@@ -25,7 +25,7 @@ import sys, io, re
 from os.path import exists
 
 from PySide6.QtCore import Qt, QAbstractTableModel, QDate
-from PySide6.QtGui import QBrush, QGuiApplication
+from PySide6.QtGui import QBrush, QGuiApplication, QFont
 from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, \
     QVBoxLayout, QHBoxLayout, QCheckBox, QLabel, QTableView, QComboBox, QHeaderView, QSizePolicy, QSpacerItem, \
     QDialog, QLineEdit, QDateEdit, QTextEdit, QStyle
@@ -99,6 +99,10 @@ class TableModel(QAbstractTableModel):
         urgent = False
         overdue = False
         
+        font = QFont('Arial',10)
+        font.setBold(False)
+        font.setItalic(False)
+
         try:
             itemdate = datetime.datetime.strptime(item['DueDate'],'%Y-%m-%d').date()
             today = datetime.date.today()
@@ -116,8 +120,9 @@ class TableModel(QAbstractTableModel):
             #    text = '  '+text+'   '
             return text
         elif role == Qt.FontRole:
-            if not darkScheme:
-                return QBrush('#000')
+            return font
+            #if not darkScheme:
+            #    return QBrush('#000')
         elif role == Qt.ForegroundRole:
             if darkScheme:
                 return QBrush('#000')
@@ -446,7 +451,7 @@ class MainWindow(QMainWindow):
         self.todoTable.verticalHeader().setDefaultSectionSize(9); # Row height
         #Category
         self.todoTable.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
-        self.todoTable.horizontalHeader().resizeSection(0, 100)
+        self.todoTable.horizontalHeader().resizeSection(0, 120)
         #Prio
         self.todoTable.horizontalHeader().setSectionResizeMode(1, QHeaderView.Fixed)
         self.todoTable.horizontalHeader().resizeSection(1, 60)
@@ -461,10 +466,10 @@ class MainWindow(QMainWindow):
         self.todoTable.horizontalHeader().setSectionResizeMode(4, QHeaderView.Stretch)
         #Date
         self.todoTable.horizontalHeader().setSectionResizeMode(5, QHeaderView.Fixed)
-        self.todoTable.horizontalHeader().resizeSection(5, 70)
+        self.todoTable.horizontalHeader().resizeSection(5, 80)
         #DueDate
         self.todoTable.horizontalHeader().setSectionResizeMode(6, QHeaderView.Fixed)
-        self.todoTable.horizontalHeader().resizeSection(6, 70)
+        self.todoTable.horizontalHeader().resizeSection(6, 80)
         #DoneDate
         self.todoTable.horizontalHeader().setSectionResizeMode(7, QHeaderView.Fixed)
         self.todoTable.horizontalHeader().resizeSection(7, 70)
