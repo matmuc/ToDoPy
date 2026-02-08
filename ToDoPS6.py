@@ -600,8 +600,11 @@ def getNewID():
             maxId = i['ID']
     return maxId+1
 
+
 def moveItemInItemsObject(item_id, from_index, to_index):
-    # Holen des Items aus der gefilterten Liste (filteredItems)
+    global ItemsObject
+
+    # Holen des Items aus ItemsObject
     item_to_move = None
     for item in ItemsObject:
         if item['ID'] == item_id:
@@ -609,28 +612,22 @@ def moveItemInItemsObject(item_id, from_index, to_index):
             break
 
     if item_to_move:
-        # Entferne das Item aus filteredItems (nicht aus ItemsObject)
-        filtered_items = getFilteredItems()  # Neu gefilterte Liste holen
+        # Holen der gefilterten Liste
+        filtered_items = getFilteredItems()
         if from_index >= len(filtered_items) or to_index >= len(filtered_items):
-            return  # Wenn der Index außerhalb der gültigen Bereiche liegt, abbrechen
+            return
 
-        # Verschiebe das Item in filteredItems
-        filtered_items.pop(from_index)  # Entfernt das Element aus der Position
-        filtered_items.insert(to_index, item_to_move)  # Fügt es an der neuen Position ein
+        # Finde die Positionen in ItemsObject (nicht in filteredItems!)
+        from_pos_global = ItemsObject.index(item_to_move)
 
-        # Jetzt müssen wir ItemsObject neu anpassen, da die gefilterte Liste nur eine Ansicht ist
-        # Wir gehen durch alle Elemente in der gefilterten Liste und aktualisieren die Positionen in ItemsObject
-        # Wir gehen alle Elemente in filteredItems durch und setzen die Reihenfolge in ItemsObject entsprechend
-        new_order = [item['ID'] for item in filtered_items]
-        ItemsObject = [item for item in ItemsObject if item['ID'] in new_order]  # Neu sortieren
+        # Verschiebe das Item in ItemsObject
+        ItemsObject.pop(from_pos_global)
+        ItemsObject.insert(from_pos_global + (to_index - from_index), item_to_move)
 
-        # ItemsObject entsprechend der neuen Reihenfolge anpassen
-        ItemsObject.sort(key=lambda item: new_order.index(item['ID']))  # Sortiere ItemsObject entsprechend der Reihenfolge in filteredItems
+        writeToDos()
+        reloadFile()
 
-        writeToDos()  # Speichern der geänderten Reihenfolge
-        reloadFile()  # Neu laden
 
-        
 def writeToDos():
     global toDoFile
     global ItemsObject

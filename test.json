@@ -1,17 +1,5 @@
 [
   {
-    "ID": 14,
-    "Title": "Noch ein Test",
-    "Description": "dies ist noch ein Test",
-    "Priority": "",
-    "Date": "2024-07-02",
-    "DueDate": "2024-08-06",
-    "Status": "New",
-    "DoneDate": "",
-    "Progress": [],
-    "Category": "test"
-  },
-  {
     "ID": 12,
     "Title": "Müll",
     "Description": "",
@@ -61,6 +49,18 @@
     "Status": "New",
     "DoneDate": "",
     "Progress": []
+  },
+  {
+    "ID": 14,
+    "Title": "Noch ein Test",
+    "Description": "dies ist noch ein Test",
+    "Priority": "",
+    "Date": "2024-07-02",
+    "DueDate": "2024-08-06",
+    "Status": "New",
+    "DoneDate": "",
+    "Progress": [],
+    "Category": "test"
   },
   {
     "ID": 22,
