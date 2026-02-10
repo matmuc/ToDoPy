@@ -32,6 +32,7 @@ from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, \
 
 
 showDone = False
+StatusFilter = 'Open'
 CatSel = 'ALL'
 
 def qDateFromStr(dStr):
@@ -55,6 +56,7 @@ def cleanString(strIn):
 
 def getFilteredItems():
     global showDone
+    global StatusFilter
     global CatSel
     filteredItems=[]
     for item in ItemsObject:
@@ -70,12 +72,18 @@ def getFilteredItems():
             itemCat = True
         else:
             itemCat = False
-        if itemDeleted:
-            None
-        elif showDone and itemDone and itemCat:
-            filteredItems.append(item)
-        elif not showDone and not itemDone and itemCat:
-            filteredItems.append(item)
+        if StatusFilter == "Deleted":
+            if itemDeleted and itemCat:
+                filteredItems.append(item)
+        elif StatusFilter == "Done":
+            if itemDone and itemCat and not itemDeleted:
+                filteredItems.append(item)
+        elif StatusFilter == "All":
+            if not itemDeleted and itemCat:
+                filteredItems.append(item)
+        else:
+            if not itemDone and itemCat and not itemDeleted:
+                filteredItems.append(item)
         #if (showDone and itemDone) or (not showDone and not itemDone) and not itemDeleted and itemCat:
         #    filteredItems.append(item)
     return filteredItems
@@ -414,10 +422,12 @@ class MainWindow(QMainWindow):
         ToDoButton.clicked.connect(self.onAddToDoButton)
         topLayout.addWidget(ToDoButton)
 
-        self.DoneCheckBox = QCheckBox('Done')
-        self.DoneCheckBox.clicked.connect(self.onDoneCB)
-        self.DoneCheckBox.setMaximumWidth(60);
-        topLayout.addWidget(self.DoneCheckBox)
+        self.statusFilterCB = QComboBox()
+        self.statusFilterCB.addItems(["Open", "Done", "All", "Deleted"])
+        self.statusFilterCB.setCurrentText("Open")
+        self.statusFilterCB.currentTextChanged.connect(self.onStatusFilterCB)
+        self.statusFilterCB.setMaximumWidth(90);
+        topLayout.addWidget(self.statusFilterCB)
 
         self.categoriesCB = QComboBox()
         self.categoriesCB.addItems(categories)
@@ -557,11 +567,11 @@ class MainWindow(QMainWindow):
         ItemsObject.append(newObj)
         self.EditToDo(newObj)
 
-    def onDoneCB(self, evt):
-        global showDone
-        showDone = evt
+    def onStatusFilterCB(self, text):
+        global StatusFilter
+        StatusFilter = text
         reloadFile()
-        print ('click onDoneCB: '+str(evt))
+        print('Selected StatusFilter: '+str(text))
 
     def onReloadButton(self):
         reloadFile()
