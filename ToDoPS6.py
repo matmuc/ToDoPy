@@ -25,7 +25,7 @@ import sys, io, re
 from os.path import exists
 
 from PySide6.QtCore import Qt, QAbstractTableModel, QDate
-from PySide6.QtGui import QBrush, QGuiApplication, QFont, QAction
+from PySide6.QtGui import QBrush, QGuiApplication, QFont, QAction, QKeySequence, QShortcut
 from PySide6.QtWidgets import QApplication, QWidget, QMainWindow, QPushButton, \
     QVBoxLayout, QHBoxLayout, QCheckBox, QLabel, QTableView, QComboBox, QHeaderView, QSizePolicy, QSpacerItem, \
     QDialog, QLineEdit, QDateEdit, QTextEdit, QStyle, QMenu
@@ -479,6 +479,14 @@ class MainWindow(QMainWindow):
         self.todoTable.horizontalHeader().setSectionResizeMode(7, QHeaderView.Fixed)
         self.todoTable.horizontalHeader().resizeSection(7, 70)
 
+        move_up_shortcut = QShortcut(QKeySequence(Qt.CTRL | Qt.Key_Up), self.todoTable)
+        move_up_shortcut.setContext(Qt.WidgetShortcut)
+        move_up_shortcut.activated.connect(self.moveUp)
+
+        move_down_shortcut = QShortcut(QKeySequence(Qt.CTRL | Qt.Key_Down), self.todoTable)
+        move_down_shortcut.setContext(Qt.WidgetShortcut)
+        move_down_shortcut.activated.connect(self.moveDown)
+
         self.statusText = QLabel(toDoFile)
         self.statusText.setMaximumHeight(20);
         self.statusText.setStyleSheet("""
@@ -518,26 +526,18 @@ class MainWindow(QMainWindow):
     def moveUp(self):
         selected_row = self.todoTable.selectionModel().currentIndex().row()
         if selected_row > 0:  # Nur wenn das Item nicht schon die erste Zeile ist
-            # Verschieben in filteredItems
-            self.model.filteredItems[selected_row], self.model.filteredItems[selected_row - 1] = \
-                self.model.filteredItems[selected_row - 1], self.model.filteredItems[selected_row]
-            
-            # Auch in ItemsObject die Reihenfolge anpassen
             item_id = self.model.filteredItems[selected_row]['ID']
-            moveItemInItemsObject(item_id, selected_row, selected_row - 1)
+            moveItemInItemsObject(item_id, "up")
             self.reloadTable()  # Tabelle neu laden
+            self.todoTable.setCurrentIndex(self.model.index(selected_row - 1, 0))
 
     def moveDown(self):
         selected_row = self.todoTable.selectionModel().currentIndex().row()
         if selected_row < len(self.model.filteredItems) - 1:  # Nur wenn das Item nicht schon die letzte Zeile ist
-            # Verschieben in filteredItems
-            self.model.filteredItems[selected_row], self.model.filteredItems[selected_row + 1] = \
-                self.model.filteredItems[selected_row + 1], self.model.filteredItems[selected_row]
-            
-            # Auch in ItemsObject die Reihenfolge anpassen
             item_id = self.model.filteredItems[selected_row]['ID']
-            moveItemInItemsObject(item_id, selected_row, selected_row + 1)
+            moveItemInItemsObject(item_id, "down")
             self.reloadTable()  # Tabelle neu laden
+            self.todoTable.setCurrentIndex(self.model.index(selected_row + 1, 0))
         
         
     def onAddToDoButton(self):
@@ -601,32 +601,58 @@ def getNewID():
     return maxId+1
 
 
-def moveItemInItemsObject(item_id, from_index, to_index):
+def moveItemInItemsObject(item_id, direction):
     global ItemsObject
 
     # Holen der gefilterten Liste
     filtered_items = getFilteredItems()
-    if from_index >= len(filtered_items) or to_index >= len(filtered_items):
+    if not filtered_items:
+        return
+
+    from_index = None
+    for i, item in enumerate(filtered_items):
+        if item['ID'] == item_id:
+            from_index = i
+            break
+    if from_index is None:
+        return
+
+    if direction == "up":
+        neighbor_index = from_index - 1
+    elif direction == "down":
+        neighbor_index = from_index + 1
+    else:
+        return
+
+    if neighbor_index < 0 or neighbor_index >= len(filtered_items):
         return
 
     # Das Item das verschoben werden soll
     item_to_move = filtered_items[from_index]
 
+    # Nachbar-Item bestimmen (höher/niedriger in filtered_items)
+    neighbor_item = filtered_items[neighbor_index]
+
     # Finde die Position in ItemsObject
     from_pos_global = ItemsObject.index(item_to_move)
 
-    # Finde die Position des Items, das an to_index in der gefilterten Liste ist
-    item_at_target = filtered_items[to_index]
-    to_pos_global = ItemsObject.index(item_at_target)
+    # Finde die Position des Nachbar-Items in ItemsObject
+    neighbor_pos_global = ItemsObject.index(neighbor_item)
 
     # Verschiebe das Item in ItemsObject zur richtigen Position
     ItemsObject.pop(from_pos_global)
 
-    # Wenn wir nach oben verschieben, muss to_pos um 1 reduziert werden
-    if from_pos_global > to_pos_global:
-        to_pos_global -= 1
+    # Insert relativ zum Nachbar-Item (vorher/nachher), korrigiert um das Pop-Shift
+    if direction == "up":
+        insert_pos = neighbor_pos_global
+        if from_pos_global < neighbor_pos_global:
+            insert_pos -= 1
+    else:
+        insert_pos = neighbor_pos_global + 1
+        if from_pos_global < neighbor_pos_global:
+            insert_pos -= 1
 
-    ItemsObject.insert(to_pos_global, item_to_move)
+    ItemsObject.insert(insert_pos, item_to_move)
 
     writeToDos()
     reloadFile()
